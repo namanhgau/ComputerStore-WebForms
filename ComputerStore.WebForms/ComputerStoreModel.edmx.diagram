@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="fce4ab61b6504bb58affd31b5a0dd829" Name="Diagram1">
+        <EntityTypeShape EntityType="ComputerStoreDBModel.C__EFMigrationsHistory" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ComputerStoreDBModel.AppUser" Width="1.5" PointX="0.75" PointY="6" IsExpanded="true" />
+        <EntityTypeShape EntityType="ComputerStoreDBModel.Category" Width="1.5" PointX="1.5" PointY="1.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ComputerStoreDBModel.ChatMessage" Width="1.5" PointX="3" PointY="5" IsExpanded="true" />
+        <EntityTypeShape EntityType="ComputerStoreDBModel.OrderDetail" Width="1.5" PointX="5.25" PointY="10.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="ComputerStoreDBModel.Order" Width="1.5" PointX="3" PointY="8.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="ComputerStoreDBModel.Product" Width="1.5" PointX="3.75" PointY="1.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="ComputerStoreDBModel.Promotion" Width="1.5" PointX="0.75" PointY="10.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="ComputerStoreDBModel.Review" Width="1.5" PointX="6" PointY="6.25" IsExpanded="true" />
+        <AssociationConnector Association="ComputerStoreDBModel.FK__ChatMessa__Sende__59FA5E80" ManuallyRouted="false" />
+        <AssociationConnector Association="ComputerStoreDBModel.FK__Orders__UserId__46E78A0C" ManuallyRouted="false" />
+        <AssociationConnector Association="ComputerStoreDBModel.FK_Reviews_AppUsers_AppUserUserId" ManuallyRouted="false" />
+        <AssociationConnector Association="ComputerStoreDBModel.FK__Products__Catego__3F466844" ManuallyRouted="false" />
+        <AssociationConnector Association="ComputerStoreDBModel.FK__OrderDeta__Order__4AB81AF0" ManuallyRouted="false" />
+        <AssociationConnector Association="ComputerStoreDBModel.FK__OrderDeta__Produ__4BAC3F29" ManuallyRouted="false" />
+        <AssociationConnector Association="ComputerStoreDBModel.FK__Orders__Promotio__47DBAE45" ManuallyRouted="false" />
+        <AssociationConnector Association="ComputerStoreDBModel.FK__Reviews__Product__5070F446" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="ComputerStoreDBModel.Warranty" Width="1.5" PointX="8.375" PointY="0.75" IsExpanded="true" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
