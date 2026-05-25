@@ -73,6 +73,43 @@
                 </div>
             </div>
         </div>
+        <div class="card shadow-sm border-0 mt-4 mb-4">
+            <div class="card-header bg-info text-white fw-bold py-3">
+                📅 Doanh thu chi tiết theo từng ngày (30 ngày gần nhất)
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Ngày giao dịch</th>
+                            <th class="text-center">Số đơn thành công</th>
+                            <th class="text-end pe-4">Doanh thu trong ngày</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <asp:Repeater ID="rptDailyRevenue" runat="server">
+                            <ItemTemplate>
+                                <tr>
+                                    <td class="ps-4 fw-bold"><%# Convert.ToDateTime(Eval("Date")).ToString("dd/MM/yyyy") %></td>
+                                    <td class="text-center"><span class="badge bg-secondary"><%# Eval("OrderCount") %> đơn</span></td>
+                                    <td class="text-end text-danger fw-bold pe-4"><%# string.Format("{0:N0}", Eval("Revenue")) %> VNĐ</td>
+                                </tr>
+                            </ItemTemplate>
+                        </asp:Repeater>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-primary text-white fw-bold py-3">
+                📈 Biểu đồ xu hướng doanh thu 7 ngày gần nhất
+            </div>
+            <div class="card-body p-4">
+                <div style="position: relative; height:300px; width:100%">
+                    <canvas id="dailyRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -118,6 +155,32 @@
                     }
                 }
             });
+            // Biểu đồ doanh thu hàng ngày
+            const ctxDaily = document.getElementById('dailyRevenueChart').getContext('2d');
+            new Chart(ctxDaily, {
+                type: 'line',
+                data: {
+                    labels: [<%= DailyLabels %>],
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: [<%= DailyData %>],
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        fill: true,
+                        tension: 0.4, // Tạo độ cong cho đường
+                        pointRadius: 5,
+                        pointBackgroundColor: '#0d6efd'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString() + ' đ' } }
+                    }
+                }
+            });
         });
+
     </script>
 </asp:Content>

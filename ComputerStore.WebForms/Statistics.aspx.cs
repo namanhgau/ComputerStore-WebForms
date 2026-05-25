@@ -8,6 +8,8 @@ namespace ComputerStore.WebForms
         // Khai báo 2 biến toàn cục để truyền dữ liệu sang JavaScript
         public string ChartLabels = "";
         public string ChartData = "";
+        public string DailyLabels = "";
+        public string DailyData = "";
         protected void Page_Load(object sender, EventArgs e)
         {
             // Bảo mật: Chỉ tài khoản Manager mới được xem doanh số
@@ -77,8 +79,39 @@ namespace ComputerStore.WebForms
                     var dataValues = chartList.Select(g => g.Revenue.ToString());
                     ChartData = string.Join(",", dataValues);
                 }
-            }
 
+                // 3. THỐNG KÊ DOANH THU THEO TỪNG NGÀY (30 NGÀY GẦN NHẤT)
+
+                // Xác định mốc thời gian 30 ngày trước so với hôm nay
+                var thirtyDaysAgo = DateTime.Now.AddDays(-30);
+
+                var dailyData = successOrdersList
+                    // Chỉ lọc những đơn có ngày đặt và nằm trong 30 ngày qua
+                    .Where(o => o.OrderDate.HasValue && o.OrderDate.Value >= thirtyDaysAgo)
+                    // Gom nhóm theo Cụm ngày chính xác (Bỏ qua giờ phút giây)
+                    .GroupBy(o => o.OrderDate.Value.Date)
+                    .Select(g => new
+                    {
+                        Date = g.Key,
+                        OrderCount = g.Count(),
+                        Revenue = g.Sum(o => o.TotalAmount)
+                    })
+                    // Sắp xếp ngày mới nhất lên đầu bảng
+                    .OrderByDescending(g => g.Date)
+                    .ToList();
+
+                // Đổ dữ liệu vào bảng Ngày trên giao diện
+                rptDailyRevenue.DataSource = dailyData;
+                rptDailyRevenue.DataBind();
+
+                if (dailyData != null && dailyData.Count > 0)
+                {
+                    // Lấy 7 ngày gần nhất để biểu đồ không bị quá dày
+                    var chartDaily = dailyData.Take(7).AsEnumerable().Reverse().ToList();
+                    DailyLabels = string.Join(",", chartDaily.Select(d => $"'{d.Date.ToString("dd/MM")}'"));
+                    DailyData = string.Join(",", chartDaily.Select(d => d.Revenue.ToString()));
+                }
+            }
         }
     }
 }
