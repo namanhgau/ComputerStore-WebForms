@@ -18,26 +18,51 @@
                 </div>
                 <div class="mb-2">
                     <label>Hình ảnh</label>
-                    <asp:FileUpload ID="fileUploadImage" runat="server" CssClass="form-control" />
+                    <asp:TemplateField HeaderText="Hình ảnh">
+                        <ItemTemplate>
+                            <asp:Image ID="imgProduct" runat="server" ImageUrl='<%# Eval("ImageUrl") %>' Width="60" Height="60" style="object-fit:contain;" />
+                        </ItemTemplate>
+    
+                        <EditItemTemplate>
+                            <asp:HiddenField ID="hdnOldImage" runat="server" Value='<%# Eval("ImageUrl") %>' />
+        
+                            <asp:Image ID="imgEditPreview" runat="server" ImageUrl='<%# Eval("ImageUrl") %>' Width="40" CssClass="d-block mb-1 border" />
+        
+                            <asp:FileUpload ID="fileUploadImage" runat="server" CssClass="form-control form-control-sm" />
+                        </EditItemTemplate>
+                    </asp:TemplateField>
                 </div>
                 <asp:Button ID="btnAdd" runat="server" Text="Lưu sản phẩm" CssClass="btn btn-success w-100 mt-2" OnClick="btnAdd_Click" />
             </div>
         </div>
 
         <div class="col-md-8">
-            <asp:GridView ID="gvProducts" runat="server" AutoGenerateColumns="False" 
-                CssClass="table table-bordered table-striped text-center align-middle" DataKeyNames="ProductId" 
-                OnRowDeleting="gvProducts_RowDeleting"
-                OnRowEditing="gvProducts_RowEditing"
-                OnRowCancelingEdit="gvProducts_RowCancelingEdit"
+            <asp:GridView ID="gvProducts" runat="server" AutoGenerateColumns="False" DataKeyNames="ProductId" 
+                CssClass="table table-bordered table-hover text-center align-middle"
+                OnRowDeleting="gvProducts_RowDeleting" 
+                OnRowEditing="gvProducts_RowEditing" 
+                OnRowCancelingEdit="gvProducts_RowCancelingEdit" 
+                AllowPaging="True"
+                PageSize="5"
+                OnPageIndexChanging="gvProducts_PageIndexChanging"
                 OnRowUpdating="gvProducts_RowUpdating">
+
                 <Columns>
-                    <asp:BoundField DataField="ProductName" HeaderText="Tên máy" />
-                    <asp:BoundField DataField="Price" HeaderText="Giá bán (VNĐ)" />
-                    <asp:ImageField DataImageUrlField="ImageUrl" HeaderText="Hình ảnh" ControlStyle-Width="80" ReadOnly="True" />
+                    <asp:BoundField DataField="ProductName" HeaderText="Tên máy" ControlStyle-CssClass="form-control" />
         
-                    <%-- Bật cả nút Sửa và nút Xóa tự động --%>
-                    <asp:CommandField ShowEditButton="True" ShowDeleteButton="True" HeaderText="Thao tác" ControlStyle-CssClass="btn btn-sm btn-outline-primary m-1" />
+                    <asp:BoundField DataField="Price" HeaderText="Giá bán (VNĐ)" ControlStyle-CssClass="form-control" />
+
+                    <asp:TemplateField HeaderText="Hình ảnh">
+                        <ItemTemplate>
+                            <asp:Image ID="imgProduct" runat="server" ImageUrl='<%# Eval("ImageUrl") %>' Width="50" Height="50" style="object-fit:contain;" />
+                        </ItemTemplate>
+                        <EditItemTemplate>
+                            <asp:HiddenField ID="hdnOldImage" runat="server" Value='<%# Eval("ImageUrl") %>' />
+                            <asp:FileUpload ID="fuEditImage" runat="server" CssClass="form-control form-control-sm" />
+                        </EditItemTemplate> 
+                    </asp:TemplateField>
+
+                    <asp:CommandField ShowEditButton="True" ShowDeleteButton="True" ControlStyle-CssClass="btn btn-sm btn-outline-primary" />
                 </Columns>
             </asp:GridView>
         </div>

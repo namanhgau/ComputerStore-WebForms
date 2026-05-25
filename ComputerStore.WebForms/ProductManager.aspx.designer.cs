@@ -42,6 +42,33 @@ namespace ComputerStore.WebForms
         protected global::System.Web.UI.WebControls.TextBox txtPrice;
 
         /// <summary>
+        /// imgProduct control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Image imgProduct;
+
+        /// <summary>
+        /// hdnOldImage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hdnOldImage;
+
+        /// <summary>
+        /// imgEditPreview control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Image imgEditPreview;
+
+        /// <summary>
         /// fileUploadImage control.
         /// </summary>
         /// <remarks>

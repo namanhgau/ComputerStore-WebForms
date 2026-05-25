@@ -9,20 +9,31 @@ namespace ComputerStore.WebForms
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Kiểm tra phân quyền hiện nút Admin (giữ nguyên code cũ của bạn)
+            // Kiểm tra phân quyền hiện nút Admin
             if (Session["Role"] != null && Session["Role"].ToString() == "Manager")
             {
-                pnlManager.Visible = true;
+                // pnlManager.Visible = true; // (Bỏ comment nếu bạn có thẻ pnlManager bên giao diện)
             }
 
             // CHỈ CHẠY 1 LẦN KHI MỚI VÀO TRANG
             if (!IsPostBack)
             {
-                LoadCategories(); // Tải danh sách hãng (Asus, Dell) đổ vào hộp Dropdown
-                LoadProducts("", 0); // Mới vào trang -> Tải toàn bộ máy tính
+                LoadCategories();
+
+                // Lấy thông tin tìm kiếm từ thanh địa chỉ URL (nếu có)
+                string kw = Request.QueryString["kw"] ?? "";
+                int cat = 0;
+                if (Request.QueryString["cat"] != null)
+                {
+                    int.TryParse(Request.QueryString["cat"], out cat);
+                    // Giữ lại trạng thái hãng máy tính đang chọn trên giao diện
+                    ddlCategory.SelectedValue = cat.ToString();
+                }
+                txtSearch.Text = kw;
+
+                // Tải máy tính dựa trên từ khóa và danh mục
+                LoadProducts(kw, cat);
             }
-
-
         }
 
         // HÀM 1: Lấy Danh mục từ CSDL đổ vào DropDownList
@@ -32,80 +43,148 @@ namespace ComputerStore.WebForms
             {
                 var categories = db.Categories.ToList();
                 ddlCategory.DataSource = categories;
-                ddlCategory.DataTextField = "CategoryName"; // Chữ hiển thị
-                ddlCategory.DataValueField = "CategoryId";  // ID ngầm
+                ddlCategory.DataTextField = "CategoryName";
+                ddlCategory.DataValueField = "CategoryId";
                 ddlCategory.DataBind();
 
-                // Chèn thêm mục "Tất cả" lên dòng đầu tiên
-                ddlCategory.Items.Insert(0, new System.Web.UI.WebControls.ListItem("-- Tất cả danh mục --", "0"));
+                ddlCategory.Items.Insert(0, new ListItem("-- Tất cả danh mục --", "0"));
             }
         }
 
-        // HÀM 2: Lọc sản phẩm cực mạnh bằng LINQ
+        // HÀM 2: Lọc sản phẩm & Phân trang (Đã bổ sung 2 tham số)
         private void LoadProducts(string keyword, int categoryId)
         {
+            int pageSize = 8; // Số lượng laptop trên 1 trang
+            int pageIndex = 1;
+
+            if (Request.QueryString["page"] != null)
+            {
+                int.TryParse(Request.QueryString["page"], out pageIndex);
+            }
+            if (pageIndex < 1) pageIndex = 1;
+
             using (var db = new ComputerStoreDBEntities())
             {
-                // Bắt đầu với câu lệnh lấy hết sản phẩm
+                // Dùng AsQueryable để xếp chồng các điều kiện lọc lên nhau
                 var query = db.Products.AsQueryable();
 
-                // Nếu người dùng có gõ chữ -> Lọc tên có chứa chữ đó (tương đương LIKE trong SQL)
-                if (!string.IsNullOrEmpty(keyword))
-                {
-                    query = query.Where(p => p.ProductName.Contains(keyword));
-                }
-
-                // Nếu người dùng chọn 1 hãng cụ thể (ID > 0) -> Lọc theo ID hãng
+                // Nếu khách có chọn Hãng (Dell, Asus...)
                 if (categoryId > 0)
                 {
                     query = query.Where(p => p.CategoryId == categoryId);
                 }
 
-                // Đổ kết quả cuối cùng ra Repeater
-                rptProducts.DataSource = query.ToList();
+                // Nếu khách có gõ chữ tìm kiếm
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    query = query.Where(p => p.ProductName.Contains(keyword));
+                }
+
+                // Tính toán tổng số trang dựa trên kết quả ĐÃ LỌC
+                int totalProducts = query.Count();
+                int totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
+
+                if (pageIndex > totalPages && totalPages > 0) pageIndex = totalPages;
+
+                // Cắt lấy dữ liệu của trang hiện tại
+                var products = query.OrderByDescending(p => p.ProductId)
+                                    .Skip((pageIndex - 1) * pageSize)
+                                    .Take(pageSize)
+                                    .ToList();
+
+                rptProducts.DataSource = products;
                 rptProducts.DataBind();
+
+                // Gọi hàm vẽ nút phân trang và truyền theo keyword, categoryId để "nhớ" trạng thái
+                RenderPagination(pageIndex, totalPages, keyword, categoryId);
             }
+        }
+
+        // HÀM 3: Tự động sinh HTML cho thanh Phân trang
+        private void RenderPagination(int currentPage, int totalPages, string keyword, int categoryId)
+        {
+            if (totalPages <= 1)
+            {
+                litPagination.Text = "";
+                return;
+            }
+
+            string html = "";
+            // Gắn sẵn từ khóa và hãng vào link để khi khách bấm chuyển trang không bị mất kết quả lọc
+            string baseUrl = $"Default.aspx?kw={Server.UrlEncode(keyword)}&cat={categoryId}&page=";
+
+            // Nút "Trang Trước"
+            if (currentPage > 1)
+            {
+                html += $"<li class='page-item'><a class='page-link text-primary fw-bold' href='{baseUrl}{currentPage - 1}'>&laquo; Trước</a></li>";
+            }
+            else
+            {
+                html += $"<li class='page-item disabled'><span class='page-link'>&laquo; Trước</span></li>";
+            }
+
+            // Các nút số
+            for (int i = 1; i <= totalPages; i++)
+            {
+                if (i == currentPage)
+                {
+                    html += $"<li class='page-item active'><span class='page-link fw-bold'>{i}</span></li>";
+                }
+                else
+                {
+                    html += $"<li class='page-item'><a class='page-link text-dark' href='{baseUrl}{i}'>{i}</a></li>";
+                }
+            }
+
+            // Nút "Trang Sau"
+            if (currentPage < totalPages)
+            {
+                html += $"<li class='page-item'><a class='page-link text-primary fw-bold' href='{baseUrl}{currentPage + 1}'>Sau &raquo;</a></li>";
+            }
+            else
+            {
+                html += $"<li class='page-item disabled'><span class='page-link'>Sau &raquo;</span></li>";
+            }
+
+            litPagination.Text = html;
         }
 
         // SỰ KIỆN NÚT BẤM: Khi người dùng nhấn nút Tìm kiếm
         protected void btnSearch_Click(object sender, EventArgs e)
         {
-            string keyword = txtSearch.Text.Trim(); // Lấy chữ người dùng gõ
-            int categoryId = int.Parse(ddlCategory.SelectedValue); // Lấy ID danh mục đang chọn
+            string keyword = txtSearch.Text.Trim();
+            int categoryId = int.Parse(ddlCategory.SelectedValue);
 
-            // Gọi hàm Lọc
-            LoadProducts(keyword, categoryId);
+            // Chuyển hướng trình duyệt tạo ra một URL mới có chứa điều kiện lọc. 
+            // Điều này giúp thuật toán Phân trang ở Page_Load có thể tóm được dữ liệu để xử lý mượt mà.
+            Response.Redirect($"Default.aspx?kw={Server.UrlEncode(keyword)}&cat={categoryId}");
         }
 
+        // SỰ KIỆN: Thêm vào giỏ hàng
         protected void rptProducts_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            // Kiểm tra xem nút vừa bấm có tên là "AddToCart" không
             if (e.CommandName == "AddToCart")
             {
-                // Lấy ID sản phẩm đã được giấu trong CommandArgument
                 int productId = int.Parse(e.CommandArgument.ToString());
 
-                using (var db = new ComputerStoreDBEntities()) // Đổi ComputerStoreDBEntities thành tên đúng trong project của bạn
+                using (var db = new ComputerStoreDBEntities())
                 {
                     var product = db.Products.FirstOrDefault(p => p.ProductId == productId);
                     if (product != null)
                     {
-                        // Lấy giỏ hàng từ Session ra
                         List<CartItem> cart = Session["Cart"] as List<CartItem>;
                         if (cart == null)
                         {
                             cart = new List<CartItem>();
                         }
 
-                        // Kiểm tra xem món đồ này đã có trong giỏ chưa
                         var existingItem = cart.FirstOrDefault(c => c.ProductId == productId);
                         if (existingItem != null)
                         {
-                            existingItem.Quantity += 1; // Có rồi thì tăng số lượng
+                            existingItem.Quantity += 1;
                         }
                         else
                         {
-                            // Chưa có thì tạo món mới
                             cart.Add(new CartItem
                             {
                                 ProductId = product.ProductId,
@@ -116,10 +195,8 @@ namespace ComputerStore.WebForms
                             });
                         }
 
-                        // Cất lại vào Session
                         Session["Cart"] = cart;
 
-                        // Bắn ra một thông báo Pop-up nhỏ (Alert) để khách biết đã mua thành công
                         string script = $"alert('🎉 Đã thêm {product.ProductName} vào giỏ hàng thành công!');";
                         ClientScript.RegisterStartupScript(this.GetType(), "AddToCartSuccess", script, true);
                     }
